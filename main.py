@@ -64,9 +64,26 @@ class LoginWindow(QMainWindow):
         self.setCentralWidget(widget)
 
     def open_new_window(self):
-        new_window = NewWindow()
-        new_window.show()
-        self.logins.append(new_window)
+        login = self.login_line.text()
+        password = self.password_line.text()
+
+        conn = get_connection()
+        curs = conn.cursor()
+
+        curs.execute('SELECT * FROM whatsapp WHERE login = %s AND password = %s', (login, password))
+        informations = curs.fetchone()
+
+        curs.close()
+        conn.close()
+
+        if informations:
+            print('Login muvaffaqiyatli amalga oshirildi.')
+            new_window = NewWindow()
+            new_window.show()
+            self.logins.append(new_window)
+        else:
+            print('Login yoki parol noto\'g\'ri.')
+            QMessageBox.warning(self, 'Xato', 'Login yoki parol noto\'g\'ri.')
 
 
 class NewWindow(QWidget):
@@ -107,7 +124,12 @@ class NewWindow(QWidget):
         outchat_label.setStyleSheet(label_style)
         send_btn.setStyleSheet(button_style)
 
+        send_btn.clicked.connect(self.send_message)
+
         self.setLayout(main_layout)
+
+    def send_message(self):
+        ...
 
 
 app = QApplication([])
